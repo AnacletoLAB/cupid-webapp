@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ncRNA Interaction Analyzer</title>
+    
+    <!-- Integrazione Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fogli di stile personalizzati (per aggiunte future) -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librerie per Forna (Visualizzazione interattiva RNA) -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/ViennaRNA/fornac@master/dist/fornac.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.13/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ViennaRNA/fornac@master/dist/fornac.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+    <!-- Header della pagina -->
+    <header class="bg-blue-600 text-white shadow-md py-6">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl font-bold">ncRNA Interaction Analyzer</h1>
+            <p class="mt-2 text-blue-100">Analisi e predizione delle interazioni di ncRNA tramite modelli AI e ViennaRNA</p>
+        </div>
+    </header>
+
+    <!-- Contenuto Principale -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        
+        <!-- SEZIONE 1: Pannello di Input -->
+        <section class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold border-b pb-2 mb-4">1. Configurazione Analisi</h2>
+            
+            <form id="analysis-form" class="space-y-6">
+                <!-- Caricamento File FASTA -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="fasta-upload">
+                        Carica sequenze in formato FASTA (.fasta, .txt)
+                    </label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="fasta-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                <svg class="w-8 h-8 mb-4 text-gray-500 mx-auto" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <!-- Qui apparirà il nome del file tramite JS -->
+                                <p id="file-name-display" class="mb-2 text-sm text-gray-500 px-4">
+                                    <span class="font-semibold">Clicca per caricare</span> o trascina il file qui
+                                </p>
+                            </div>
+                            <input id="fasta-upload" type="file" class="hidden" accept=".fasta,.txt" />
+                        </label>
+                    </div>
+                    <!-- Area per mostrare eventuali errori di input gestiti da JS -->
+                    <p id="input-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                </div>
+
+                <!-- Selezione Modello e Strumento -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Modelli AI -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="ai-model">Modello AI</label>
+                        <select id="ai-model" class="block w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                            <option value="mirInter-Trans">mirInter-Trans</option>
+                            <option value="CUPID">CUPID</option>
+                        </select>
+                    </div>
+                    <!-- Strumenti ViennaRNA -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" for="vienna-tool">Analisi Strutturale (ViennaRNA)</label>
+                        <select id="vienna-tool" class="block w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
+                            <option value="RNAfold">RNAfold (Ripiegamento singola molecola)</option>
+                            <option value="RNAcofold">RNAcofold (Interazione tra coppie)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bottone di invio -->
+                <div class="flex justify-end">
+                    <button type="button" id="start-analysis-btn" class="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition">
+                        Avvia Analisi
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- SEZIONE 2: Risultati (Inizialmente nascosta) -->
+        <section id="results-section" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h2 class="text-xl font-semibold border-b pb-2 mb-4">2. Risultati Analisi</h2>
+            
+            <!-- Tabella delle probabilità di interazione -->
+            <div class="overflow-x-auto mb-8">
+                <h3 class="text-lg font-medium mb-3 text-gray-700">Probabilità di Interazione</h3>
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">ID Sequenza 1</th>
+                            <th scope="col" class="px-6 py-3">ID Sequenza 2</th>
+                            <th scope="col" class="px-6 py-3">Probabilità</th>
+                            <th scope="col" class="px-6 py-3">Minimum Free Energy (MFE)</th>
+                            <th scope="col" class="px-6 py-3 text-right">Azione</th> 
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                        <!-- Le righe verranno iniettate qui da JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Contenitore per la visualizzazione interattiva con Forna -->
+            <div>
+                <h3 class="text-lg font-medium mb-3 text-gray-700">Visualizzazione Struttura Secondaria</h3>
+                <div id="forna-container" class="w-full h-96 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
+                    <span class="text-gray-400">La struttura dell'RNA apparirà qui</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <!-- Collegamento alla logica JavaScript -->
+    <script src="app.js" defer></script>
+</body>
+</html>
