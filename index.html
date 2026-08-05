@@ -8,14 +8,6 @@
     <!-- Integrazione Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fogli di stile personalizzati (per aggiunte future) -->
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Librerie per Forna (Visualizzazione interattiva RNA) -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/ViennaRNA/fornac@master/dist/fornac.css" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.13/d3.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ViennaRNA/fornac@master/dist/fornac.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
     <!-- Header della pagina -->
@@ -73,6 +65,7 @@
                         <select id="vienna-tool" class="block w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50">
                             <option value="RNAfold">RNAfold (Ripiegamento singola molecola)</option>
                             <option value="RNAcofold">RNAcofold (Interazione tra coppie)</option>
+                            <option value="entrambi">RNAfold + RNAcofold (Entrambi)</option>
                         </select>
                     </div>
                 </div>
@@ -86,7 +79,7 @@
             </form>
         </section>
 
-        <!-- SEZIONE 2: Risultati (Inizialmente nascosta) -->
+        <!-- SEZIONE 2: Risultati (Inizialmente nascosta perché non ancora disponibile) -->
         <section id="results-section" class="bg-white rounded-lg shadow-lg p-6 hidden">
             <h2 class="text-xl font-semibold border-b pb-2 mb-4">2. Risultati Analisi</h2>
             
@@ -109,18 +102,21 @@
                 </table>
             </div>
 
-            <!-- Contenitore per la visualizzazione interattiva con Forna -->
+            <!-- Contenitore per la visualizzazione interattiva SVG -->
             <div>
                 <h3 class="text-lg font-medium mb-3 text-gray-700">Visualizzazione Struttura Secondaria</h3>
-                <div id="forna-container" class="w-full h-96 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
-                    <span class="text-gray-400">La struttura dell'RNA apparirà qui</span>
+                <div id="visualization-container" class="w-full border border-gray-200 rounded-lg bg-gray-50 p-4">
+                    <span class="text-gray-400 block text-center py-10">La struttura dell'RNA apparirà qui</span>
                 </div>
             </div>
         </section>
     </main>
 
-
-    <!-- Collegamento alla logica JavaScript -->
+    <!-- Moduli Frontend Javascript Scomposti -->
+    <script src="fasta_parser.js" defer></script>
+    <script src="ui_components.js" defer></script>
+    <script src="svg_interactive.js" defer></script>
+    <script src="results_renderer.js" defer></script>
     <script src="app.js" defer></script>
 </body>
 </html>

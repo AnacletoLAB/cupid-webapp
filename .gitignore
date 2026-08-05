@@ -1,2 +1,4 @@
-__pycache__/ .venv/
+.venv/
+RNA-FM/
 __pycache__/
+*.pyc
