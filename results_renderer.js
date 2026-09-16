@@ -96,10 +96,29 @@ function mostraRisultati(risultati, strumentoSelezionato) {
     risultati.forEach((risultato, index) => {
         const tr = document.createElement("tr");
         tr.className = "bg-white border-b hover:bg-gray-50 transition-colors";                      
+        
+        // 🎨 Formattazione Condizionale (Fase 3)
+        const percentuale = (risultato.probabilita * 100).toFixed(1) + "%";
+        let stileBadge = "bg-red-100 text-red-800"; // Default: Neutro/Rosso
+        let testoEsito = "Nessuna Interazione";
+
+        // Modifica in verde se la rete neurale conferma l'interazione
+        if (risultato.esito === "Interagisce") {
+            stileBadge = "bg-green-100 text-green-800"; 
+            testoEsito = "Interagisce";
+        }
+
         tr.innerHTML = `
             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${risultato.id1}</td>
             <td class="px-6 py-4">${risultato.id2 || "-"}</td>
-            <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full font-semibold">${(risultato.probabilita * 100).toFixed(1)}%</span></td>
+            <td class="px-6 py-4">
+                <div class="flex flex-col items-start">
+                    <span class="px-2 py-1 ${stileBadge} rounded-full font-semibold text-sm">
+                        ${percentuale}
+                    </span>
+                    <span class="text-xs text-gray-500 mt-1 font-medium">${testoEsito}</span>
+                </div>
+            </td>
             <td class="px-6 py-4 font-mono">${risultato.mfe} kcal/mol</td>
             <td class="px-6 py-4 text-right">
                 <button type="button" class="view-2d-btn px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg hover:bg-blue-200 shadow-sm">Visualizza in 2D</button>
@@ -114,6 +133,8 @@ function mostraRisultati(risultati, strumentoSelezionato) {
         });
 
         tableBody.appendChild(tr);
+        
+        // Auto-selezione della prima riga al caricamento
         if (index === 0) {
             tr.classList.add("bg-blue-50");
             renderizzaSVG(risultato, strumentoSelezionato);

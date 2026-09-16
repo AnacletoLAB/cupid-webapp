@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from models import RichiestaAnalisi
 from embedding_manager import calcola_o_recupera_embedding
 from vienna_service import analizza_struttura_vienna
+from prediction_service import predici_interazione # 🎯 NUOVO IMPORT
 
 app = FastAPI(title="ncRNA Interaction Analyzer API")
 
@@ -41,15 +42,18 @@ async def analizza_sequenze(dati: RichiestaAnalisi):
             # 🧬 2. ANALISI STRUTTURALE & VISUALIZZAZIONE 2D (ViennaRNA + VARNA)
             dati_vienna = analizza_struttura_vienna(seq1.sequenza, seq2.sequenza, dati.strumentoVienna)
 
-            # TODO: Inserire qui il passaggio dei vettori emb_seq1 e emb_seq2 ai modelli predittivi
-            probabilita_calcolata = 0.999 
+            # 🎯 3. PREDIZIONE INTERAZIONE (Rete Neurale Feed-Forward)
+            # Sfruttiamo gli ID per il riconoscimento automatico (es. miRNA-lncRNA)
+            predizione = predici_interazione(emb_seq1, emb_seq2, dati.modelloAI, seq1.id, seq2.id)
 
             risultati.append({
                 "id1": seq1.id,
                 "id2": seq2.id,
                 "seq1_seq": seq1.sequenza,
                 "seq2_seq": seq2.sequenza,
-                "probabilita": probabilita_calcolata,
+                # Convertiamo da % (es. 95.4) a decimale (es. 0.954) per il frontend
+                "probabilita": round(predizione["probabilita_percentuale"] / 100.0, 4),
+                "esito": predizione["esito"],
                 **dati_vienna
             })
 

@@ -3,7 +3,6 @@
  * Gestisce la lettura dei file e i controlli di sicurezza client-side.
  */
 
-// Reads local file using FileReader API wrapped in a Promise
 function leggiFileTesto(file) {
     return new Promise((resolve, reject) => {
         const lettore = new FileReader();
@@ -13,23 +12,35 @@ function leggiFileTesto(file) {
     });
 }
 
-// Parses FASTA syntax, checks for duplicates, and validates RNA bases
 function analizzaEValidaFasta(testo) {
     const righe = testo.split(/\r?\n/);
     let sequenzeFinali = [];
     let idsRilevati = new Set();
     let idCorrente = null;
     let sequenzaCorrente = "";
-    const regexRNA = /^[AUCG]+$/;
+    
+    let trovateTimine = false; // Flag per il warning
 
     const processaSequenza = (id, seq) => {
         if (!id) return;
         if (idsRilevati.has(id)) throw new Error(`ID duplicato rilevato: "${id}"`);
         idsRilevati.add(id);
         
-        let seqPulita = seq.toUpperCase().trim().replace(/T/g, "U");
+        let seqUpper = seq.toUpperCase().trim();
+        
+        // 1. Controlla se ci sono T per attivare il warning
+        if (seqUpper.includes("T")) {
+            trovateTimine = true;
+        }
+        
+        // 2. Converte subito in U per proteggere il backend
+        let seqPulita = seqUpper.replace(/T/g, "U");
+        
         if (!seqPulita) throw new Error(`Sequenza vuota per l'ID "${id}"`);
-        if (!regexRNA.test(seqPulita)) throw new Error(`Caratteri non validi nella sequenza ID "${id}". Usa solo A, U, C, G.`);
+        
+        // 3. Valida la sequenza ripulita (ora deve avere solo AUCG)
+        const regexSoloRNA = /^[AUCG]+$/;
+        if (!regexSoloRNA.test(seqPulita)) throw new Error(`Caratteri non validi nella sequenza ID "${id}". Usa solo A, U, C, G.`);
         
         sequenzeFinali.push({ id: id, sequenza: seqPulita });
     };
@@ -49,5 +60,9 @@ function analizzaEValidaFasta(testo) {
     processaSequenza(idCorrente, sequenzaCorrente);
     if (sequenzeFinali.length === 0) throw new Error("Nessuna sequenza FASTA valida trovata nel file.");
     
-    return sequenzeFinali;
+    // Ritorna sia i dati che il flag del warning
+    return {
+        sequenze: sequenzeFinali,
+        warningTimine: trovateTimine
+    };
 }

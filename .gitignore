@@ -1,4 +1,22 @@
+# Ambiente virtuale Python
 .venv/
+venv/
+
+# Cartella locale RNA-FM (già installata come editable library)
 RNA-FM/
+
+# File binari pesanti dei pesi neurali e cartella pesi
+pesi/
+*.pth
+*.pt
+*.pkl
+
+# File di cache Python
 __pycache__/
 *.pyc
+
+# Eseguibili Java o file temporanei locali
+VARNA.jar
+*.svg
+.DS_Store
+.vscode/
